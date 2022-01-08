@@ -27,7 +27,7 @@ shared_mutex mtx;
 
 
 
-void threadParser(TCPServer* server, ReceivedSocketData&& data, map<string, vector<string>>* messageBoard);
+void threadParser(TCPServer* server, ReceivedSocketData data, map<string, vector<string>>* messageBoard);
 //void readerTask(TCPServer* server, ReceivedSocketData data, map<string, vector<string>>* messageBoard, ReadRequest read);
 
 int main() {
@@ -68,7 +68,7 @@ int main() {
 }
 
 
-void threadParser(TCPServer* server, ReceivedSocketData&& data, map<string, vector<string>>* messageBoard)
+void threadParser(TCPServer* server, ReceivedSocketData data, map<string, vector<string>>* messageBoard)
 {
 	unsigned int socketIndex = (unsigned int)data.ClientSocket;
 	
@@ -103,16 +103,20 @@ void threadParser(TCPServer* server, ReceivedSocketData&& data, map<string, vect
 				vector<string> temp;
 
 				mtx.lock();
-
 				it = messageBoard->find(post.getTopicId());
 				if (it != messageBoard->end())
 					temp = it->second;
+				mtx.unlock();
 
 				temp.push_back(post.getMessage());
-				messageBoard->insert_or_assign(post.getTopicId(), temp);
+
+				mtx.lock();
+				messageBoard->insert_or_assign(post.getTopicId(), temp);	
+				mtx.unlock();
+
 				data.reply = to_string(temp.size() - 1);
 				server->sendReply(data);
-				mtx.unlock();
+				
 
 				continue;
 			}
@@ -131,19 +135,22 @@ void threadParser(TCPServer* server, ReceivedSocketData&& data, map<string, vect
 
 
 				mtx.lock_shared();
-				it = messageBoard->find(read.getTopicId());
+				it = messageBoard->find(read.getTopicId());			
 				if (it != messageBoard->end())
 				{
+					mtx.unlock_shared();
 					temp = it->second;
 					if (temp.size() > read.getPostId())
 					{
 						string message = temp.at(read.getPostId());
 						data.reply = message;
 					}
-
 				}
+				else
+					mtx.unlock_shared();
+				
 				server->sendReply(data);
-				mtx.unlock_shared();
+				
 				
 				continue;
 			}
