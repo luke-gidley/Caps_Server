@@ -121,7 +121,29 @@ void threadParser(TCPServer* server, ReceivedSocketData&& data, map<string, vect
 			if (read.valid)
 			{
 				
-				readers.enqueue([&] {readerTask(server, data, messageBoard, read); });
+				if (read.getTopicId().length() > 140)
+					read.topicId = read.getTopicId().substr(0, 140);
+
+
+				map<string, vector<string>>::iterator it;
+
+				vector<string> temp;
+
+
+				mtx.lock_shared();
+				it = messageBoard->find(read.getTopicId());
+				if (it != messageBoard->end())
+				{
+					temp = it->second;
+					if (temp.size() > read.getPostId())
+					{
+						string message = temp.at(read.getPostId());
+						data.reply = message;
+					}
+
+				}
+				server->sendReply(data);
+				mtx.unlock_shared();
 				
 				continue;
 			}
@@ -189,29 +211,4 @@ void threadParser(TCPServer* server, ReceivedSocketData&& data, map<string, vect
 
 
 
-void readerTask(TCPServer* server, ReceivedSocketData data, map<string, vector<string>>* messageBoard, ReadRequest read)
-{
-	if (read.getTopicId().length() > 140)
-		read.topicId = read.getTopicId().substr(0, 140);
-
-
-	map<string, vector<string>>::iterator it;
-
-	vector<string> temp;
-
-
-	mtx.lock_shared();
-	it = messageBoard->find(read.getTopicId());
-	if (it != messageBoard->end())
-	{
-		temp = it->second;
-		if (temp.size() > read.getPostId())
-		{
-			string message = temp.at(read.getPostId());
-			data.reply = message;
-		}
-
-	}
-	server->sendReply(data);
-	mtx.unlock_shared();
-}
+//void readerTask(TCPServer* server, ReceivedSocketData data, map<string, vector<string>>* messageBoard, ReadRequest read)
