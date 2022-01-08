@@ -28,7 +28,7 @@ shared_mutex mtx;
 
 
 void threadParser(TCPServer* server, ReceivedSocketData&& data, map<string, vector<string>>* messageBoard);
-void readerTask(TCPServer* server, ReceivedSocketData data, map<string, vector<string>>* messageBoard, ReadRequest read);
+//void readerTask(TCPServer* server, ReceivedSocketData data, map<string, vector<string>>* messageBoard, ReadRequest read);
 
 int main() {
 
