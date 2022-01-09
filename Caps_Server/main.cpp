@@ -27,7 +27,7 @@ shared_mutex mtx;
 
 
 
-void threadParser(TCPServer* server, ReceivedSocketData data, map<string, vector<string>>* messageBoard);
+void threadParser(TCPServer* server, ReceivedSocketData&& data, map<string, vector<string>>* messageBoard);
 //void readerTask(TCPServer* server, ReceivedSocketData data, map<string, vector<string>>* messageBoard, ReadRequest read);
 
 int main() {
@@ -68,11 +68,10 @@ int main() {
 }
 
 
-void threadParser(TCPServer* server, ReceivedSocketData data, map<string, vector<string>>* messageBoard)
+void threadParser(TCPServer* server, ReceivedSocketData&& data, map<string, vector<string>>* messageBoard)
 {
 	unsigned int socketIndex = (unsigned int)data.ClientSocket;
-	
-	ThreadPool readers(3);
+
 	do
 	{
 		server->receiveData(data, 1);
@@ -102,11 +101,11 @@ void threadParser(TCPServer* server, ReceivedSocketData data, map<string, vector
 
 				vector<string> temp;
 
-				mtx.lock();
+				mtx.lock_shared();
 				it = messageBoard->find(post.getTopicId());
 				if (it != messageBoard->end())
 					temp = it->second;
-				mtx.unlock();
+				mtx.unlock_shared();
 
 				temp.push_back(post.getMessage());
 
@@ -200,7 +199,7 @@ void threadParser(TCPServer* server, ReceivedSocketData data, map<string, vector
 				terminateServer = true;
 				data.reply = "TERMINATING";
 				server->sendReply(data);
-				TCPClient tempClient(std::string("127.0.0.1"), DEFAULT_PORT);
+				TCPClient tempClient(string("127.0.0.1"), DEFAULT_PORT);
 				tempClient.OpenConnection();
 				tempClient.CloseConnection();
 				continue;
