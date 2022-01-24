@@ -83,9 +83,7 @@ void threadParser(TCPServer* server, ReceivedSocketData&& data, map<string, vect
 			PostRequest post = PostRequest::parse(data.request);
 			if (post.valid)
 			{
-				//cout << "Post request: " << post.toString() << endl;
-				//cout << "Post topic: " << post.getTopicId() << endl;
-				//cout << "Post message: " << post.getMessage() << endl;
+
 
 				if (post.getTopicId().length() > 140)
 				{
@@ -157,8 +155,6 @@ void threadParser(TCPServer* server, ReceivedSocketData&& data, map<string, vect
 			CountRequest count = CountRequest::parse(data.request);
 			if (count.valid)
 			{
-				//cout << "Count request: " << count.toString() << endl;
-				//cout << "Count topic: " << count.getTopicId() << endl;
 
 				map<string, vector<string>>::iterator it;
 
@@ -178,7 +174,6 @@ void threadParser(TCPServer* server, ReceivedSocketData&& data, map<string, vect
 			ListRequest list = ListRequest::parse(data.request);
 			if (list.valid)
 			{
-				//cout << "List request: " << list.toString() << endl;
 				string reply = "";
 				for (map<string, vector<string>>::iterator iter = messageBoard->begin(); iter != messageBoard->end(); ++iter)
 				{
@@ -194,8 +189,6 @@ void threadParser(TCPServer* server, ReceivedSocketData&& data, map<string, vect
 			ExitRequest exitReq = ExitRequest::parse(data.request);
 			if (exitReq.valid)
 			{
-				//cout << "Exit request: " << exitReq.toString() << endl;
-
 				terminateServer = true;
 				data.reply = "TERMINATING";
 				server->sendReply(data);
@@ -217,4 +210,4 @@ void threadParser(TCPServer* server, ReceivedSocketData&& data, map<string, vect
 
 
 
-//void readerTask(TCPServer* server, ReceivedSocketData data, map<string, vector<string>>* messageBoard, ReadRequest read)
+
